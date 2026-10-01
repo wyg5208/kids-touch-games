@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>宝宝欢乐岛</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:#191933;color:#fff;font-family:system-ui,"PingFang SC","Microsoft YaHei",sans-serif;touch-action:none;user-select:none;-webkit-user-select:none}
+#app{position:fixed;inset:0;display:flex;flex-direction:column}
+.hidden{display:none!important}
+header{flex:0 0 60px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;font-size:19px;font-weight:700;color:#ffd93d}
+header button{width:54px;height:54px;border:0;border-radius:50%;background:#2b2b52;color:#fff;font-size:24px;line-height:1;transition:transform .1s}
+header button:active{transform:scale(.9)}
+.page{flex:1;min-height:0;display:flex;flex-direction:column;position:relative}
+#home{padding:0 14px 16px;gap:12px;overflow-y:auto}
+#home h1{text-align:center;font-size:22px;color:#8ce7ff;padding:4px 0}
+.card{flex:1;min-height:88px;border-radius:26px;display:flex;align-items:center;gap:16px;padding:0 20px;background:linear-gradient(135deg,#35306e,#25254a);border:5px solid #4a4a86;position:relative;transition:transform .1s}
+.card:active{transform:scale(.97)}
+.card .ico{font-size:clamp(38px,12vw,54px);line-height:1}
+.card .t{font-size:clamp(18px,5.2vw,23px);font-weight:700}
+.card .s{font-size:18px;color:#ffd93d;letter-spacing:2px}
+.badge{position:absolute;right:14px;top:8px;font-size:32px}
+.hud{text-align:center;font-size:19px;padding:8px;color:#ffd93d;font-weight:700}
+.hud b{color:#fff}
+.prompt{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:6px}
+.bigemo{font-size:clamp(56px,16vw,104px);line-height:1.1}
+.sw{width:clamp(74px,21vw,116px);height:clamp(74px,21vw,116px);border-radius:24px;border:5px solid rgba(255,255,255,.75);display:flex;align-items:center;justify-content:center;font-size:clamp(18px,4.6vw,26px);font-weight:800;color:#fff;text-shadow:0 2px 5px rgba(0,0,0,.55)}
+.opts{flex:1;min-height:0;display:grid;gap:12px;padding:8px 14px 16px}
+.opt{min-height:78px;min-width:0;border:5px solid rgba(255,255,255,.4);border-radius:26px;display:flex;align-items:center;justify-content:center;font-size:clamp(38px,12vw,74px);background:#2b2b52;transition:transform .12s}
+.opt:active{transform:scale(.95)}
+.shake{animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-9px)}75%{transform:translateX(9px)}}
+#g1wrap{flex:1;position:relative;overflow:hidden}
+.bub{position:absolute;top:0;border-radius:50%;background:radial-gradient(circle at 32% 30%,rgba(255,255,255,.95),rgba(120,220,255,.45) 42%,rgba(80,150,255,.22));border:3px solid rgba(190,245,255,.85);box-shadow:0 0 18px rgba(120,220,255,.55),inset 0 0 14px rgba(255,255,255,.35);will-change:transform}
+#stage4{flex:1;min-height:0;position:relative;overflow:hidden}
+.fruit{position:absolute;line-height:1;transform:translate(-50%,-50%);filter:drop-shadow(0 4px 8px rgba(0,0,0,.45))}
+#num4{flex:0 0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:8px 14px 18px}
+.num{height:clamp(76px,16vh,108px);min-width:0;border:5px solid rgba(255,255,255,.4);border-radius:26px;display:flex;align-items:center;justify-content:center;font-size:clamp(34px,10vw,56px);font-weight:800;background:#2b2b52;color:#fff;transition:transform .12s}
+.num:active{transform:scale(.95)}
+.num.hit{border-color:#3ddc84;background:#1e4c32;box-shadow:0 0 18px rgba(61,220,132,.55)}
+/* 关卡5 形状配对 */
+#slot5{width:100%;max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:6px 12px 0}
+.slot{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border:5px dashed rgba(255,255,255,.45);border-radius:20px;font-size:clamp(30px,9vw,52px);opacity:.7;transition:all .2s}
+.slot.done{border-color:#3ddc84;border-style:solid;background:rgba(61,220,132,.16);opacity:1}
+#tray5{flex:1;min-height:0;touch-action:none}
+.pc{position:fixed;z-index:40;touch-action:none;will-change:transform;filter:drop-shadow(0 6px 10px rgba(0,0,0,.45))}
+.pc>i{display:block;width:100%;height:100%}
+.pc.done{filter:drop-shadow(0 0 14px rgba(61,220,132,.85))}
+/* 关卡6 记忆翻翻乐 */
+#board6{flex:1;min-height:0;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(3,1fr);gap:8px;padding:8px 12px 16px}
+.mc{position:relative;min-height:80px;perspective:800px;touch-action:none}
+.mc .in{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .42s cubic-bezier(.4,.1,.3,1.2)}
+.mc.flip .in{transform:rotateY(180deg)}
+.mc .f,.mc .b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border-radius:18px;border:5px solid rgba(255,255,255,.4);backface-visibility:hidden;-webkit-backface-visibility:hidden;font-size:clamp(28px,8.6vw,56px);line-height:1}
+.mc .b{background:linear-gradient(135deg,#4d9bff,#7a5cff);color:#ffe680}
+.mc .f{background:#2b2b52;transform:rotateY(180deg)}
+.mc.done .f{border-color:#3ddc84;background:#1e4c32;box-shadow:0 0 16px rgba(61,220,132,.5)}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:50;overflow:hidden}
+.star{position:absolute;animation:fly .68s ease-out forwards}
+@keyframes fly{to{transform:translate(var(--dx),var(--dy)) scale(.15) rotate(200deg);opacity:0}}
+#win{position:fixed;inset:0;z-index:60;background:rgba(10,10,30,.86);display:flex;align-items:center;justify-content:center;padding:20px}
+.wbox{width:100%;max-width:400px;background:#25254a;border:5px solid #ffd93d;border-radius:28px;padding:24px;text-align:center;animation:pop .35s}
+@keyframes pop{from{transform:scale(.7);opacity:0}}
+.wstars{font-size:clamp(36px,12vw,52px);animation:bob 1s infinite alternate}
+@keyframes bob{to{transform:scale(1.14) rotate(6deg)}}
+.wbox h2{font-size:28px;color:#ffd93d;margin:8px 0 16px}
+#winfo{font-size:18px;color:#8ce7ff;font-weight:700;margin:-6px 0 10px}
+.wbtn{display:block;width:100%;min-height:80px;margin-top:12px;border:0;border-radius:22px;font-size:23px;font-weight:800;background:#3ddc84;color:#0b2b1a;transition:transform .1s}
+.wbtn:active{transform:scale(.96)}
+#tohome{background:#4d9bff;color:#062040}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <button id="back" class="hidden">←</button>
+    <div id="title">🌈 宝宝欢乐岛</div>
+    <button id="mute">🔊</button>
+  </header>
+
+  <main class="page" id="home">
+    <h1>选一个游戏吧！</h1>
+    <div class="card" data-go="g1"><span class="ico">🫧</span><div><div class="t">拍泡泡</div><div class="s">★</div></div><span class="badge" id="bg1"></span></div>
+    <div class="card" data-go="g2"><span class="ico">🎨</span><div><div class="t">认识颜色</div><div class="s">★☆</div></div><span class="badge" id="bg2"></span></div>
+    <div class="card" data-go="g3"><span class="ico">🐾</span><div><div class="t">找一样的小动物</div><div class="s">★★</div></div><span class="badge" id="bg3"></span></div>
+    <div class="card" data-go="g4"><span class="ico">🔢</span><div><div class="t">数一数</div><div class="s">★★★</div></div><span class="badge" id="bg4"></span></div>
+    <div class="card" data-go="g5"><span class="ico">⭐</span><div><div class="t">形状配对</div><div class="s">★★★★</div></div><span class="badge" id="bg5"></span></div>
+    <div class="card" data-go="g6"><span class="ico">🧠</span><div><div class="t">记忆翻翻乐</div><div class="s">★★★★★</div></div><span class="badge" id="bg6"></span></div>
+  </main>
+
+  <main class="page hidden" id="g1">
+    <div class="hud">点破泡泡 <b id="s1">0</b> / 10</div>
+    <div id="g1wrap"></div>
+  </main>
+
+  <main class="page hidden" id="g2">
+    <div class="hud">找出这个颜色 <b id="s2">0</b> / 8</div>
+    <div class="prompt"><span class="sw" id="t2"></span></div>
+    <div class="opts" id="o2"></div>
+  </main>
+
+  <main class="page hidden" id="g3">
+    <div class="hud">找出一样的小动物 <b id="s3">0</b> / 8</div>
+    <div class="prompt"><span class="bigemo" id="t3">🐱</span></div>
+    <div class="opts" id="o3"></div>
+  </main>
+
+  <main class="page hidden" id="g4">
+    <div class="hud">数一数，有几个？ <b id="s4">0</b> / 8</div>
+    <div id="stage4"></div>
+    <div id="num4"></div>
+  </main>
+
+  <main class="page hidden" id="g5">
+    <div class="hud">把形状拖进一样的坑里 <b id="s5">0</b> / 4</div>
+    <div id="slot5"></div>
+    <div id="tray5"></div>
+  </main>
+
+  <main class="page hidden" id="g6">
+    <div class="hud">找出一样的图案 <b id="s6">0</b> / 6 · 步数 <b id="s6step">0</b></div>
+    <div id="board6"></div>
+  </main>
+</div>
+
+<div id="fx"></div>
+
+<div id="win" class="hidden">
+  <div class="wbox">
+    <div class="wstars">⭐⭐⭐</div>
+    <h2>太棒了！</h2>
+    <div id="winfo" class="hidden"></div>
+    <button class="wbtn" id="again">再来一次</button>
+    <button class="wbtn" id="tohome">返回首页</button>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const el=s=>document.querySelector(s);
+const rnd=n=>Math.floor(Math.random()*n);
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;};
+
+/* ========= 音效 ========= */
+let AC=null,mute=false;
+function actx(){
+  try{
+    if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();
+    if(AC.state==='suspended')AC.resume();
+  }catch(e){}
+  return AC;
+}
+function tone(f,at,d,vol,type){
+  if(mute)return;const c=actx();if(!c)return;
+  const o=c.createOscillator(),g=c.createGain();
+  o.type=type||'sine';o.frequency.value=f;o.connect(g);g.connect(c.destination);
+  const t=c.currentTime+at;
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.exponentialRampToValueAtTime(vol,t+0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+d);
+  o.start(t);o.stop(t+d+0.06);
+}
+const sGood=()=>{tone(784,0,.12,.2);tone(1175,.08,.22,.17);};
+const sBad =()=>{tone(196,0,.26,.12);tone(147,.12,.3,.09);};
+const sFlip=()=>{tone(520,0,.09,.1,'triangle');};
+const sWin =()=>{[523,659,784,1047,1319].forEach((f,i)=>tone(f,i*.1,.36,.14,'triangle'));};
+
+/* ========= 状态 ========= */
+let S={g1:false,g2:false,g3:false,g4:false,g5:false,g6:false};
+try{Object.assign(S,JSON.parse(localStorage.getItem('babyIsland')||'{}'));}catch(e){}
+const save=()=>{try{localStorage.setItem('babyIsland',JSON.stringify(S));}catch(e){}};
+
+let current='home',lastTap=0;
+function busy(){const t=Date.now();if(t-lastTap<130)return true;lastTap=t;return false;}
+
+const fx=el('#fx');
+function burst(x,y){
+  for(let i=0;i<11;i++){
+    const s=document.createElement('span');
+    s.className='star';
+    s.textContent=Math.random()<.75?'⭐':'✨';
+    s.style.left=x+'px';s.style.top=y+'px';
+    s.style.fontSize=(16+Math.random()*20)+'px';
+    const a=Math.random()*Math.PI*2,d=55+Math.random()*95;
+    s.style.setProperty('--dx',(Math.cos(a)*d).toFixed(1)+'px');
+    s.style.setProperty('--dy',(Math.sin(a)*d).toFixed(1)+'px');
+    fx.appendChild(s);
+    setTimeout(()=>s.remove(),720);
+  }
+}
+
+/* ========= 切换 ========= */
+const pages=['home','g1','g2','g3','g4','g5','g6'].map(id=>el('#'+id));
+const TITLE={home:'🌈 宝宝欢乐岛',g1:'🫧 拍泡泡',g2:'🎨 认识颜色',g3:'🐾 找一样的小动物',g4:'🔢 数一数',g5:'⭐ 形状配对',g6:'🧠 记忆翻翻乐'};
+function renderHome(){
+  [1,2,3,4,5,6].forEach(i=>{el('#bg'+i).textContent=S['g'+i]?'🏅':'';});
+}
+function open(id){
+  if(current==='g1')stop1();
+  if(current==='g5')stop5();
+  if(current==='g6')stop6();
+  current=id;
+  pages.forEach(p=>p.classList.toggle('hidden',p.id!==id));
+  el('#back').classList.toggle('hidden',id==='home');
+  el('#title').textContent=TITLE[id];
+  if(id==='home')renderHome();
+  if(id==='g1')start1();
+  if(id==='g2')start2();
+  if(id==='g3')start3();
+  if(id==='g4')start4();
+  if(id==='g5')start5();
+  if(id==='g6')start6();
+}
+function win(id){
+  if(id==='g1')stop1();
+  if(id==='g6')stop6();
+  S[id]=true;save();renderHome();sWin();
+  const wi=el('#winfo');
+  if(id==='g6'){
+    let best=0;
+    try{best=parseInt(localStorage.getItem('babyMemoryBest'),10)||0;}catch(e){}
+    if(!best||steps6<best){
+      best=steps6;
+      try{localStorage.setItem('babyMemoryBest',String(best));}catch(e){}
+    }
+    if(!mute)tone(660,.5,.3,.16);
+    wi.textContent='用了 '+steps6+' 步 · 最佳 '+best+' 步';
+    wi.classList.remove('hidden');
+  }else{
+    wi.classList.add('hidden');
+  }
+  el('#win').classList.remove('hidden');
+}
+
+/* ========= 关卡1 拍泡泡 ========= */
+let raf1=0,lastT=0,bub=[],bscore=0,spawnT=0;
+function spawnBub(){
+  const wrap=el('#g1wrap');
+  const size=64+Math.random()*46;
+  const d=document.createElement('div');
+  d.className='bub';
+  const y0=wrap.clientHeight+50;
+  d.style.width=size+'px';d.style.height=size+'px';
+  d.style.left=(3+Math.random()*80)+'%';
+  d.style.transform='translateY('+y0+'px)';
+  wrap.appendChild(d);
+  const o={el:d,y:y0,v:32+Math.random()*40};
+  d.addEventListener('pointerdown',e=>{
+    e.preventDefault();
+    if(busy())return;
+    const r=d.getBoundingClientRect();
+    burst(r.left+r.width/2,r.top+r.height/2);
+    sGood();d.remove();
+    bscore++;el('#s1').textContent=Math.min(bscore,10);
+    if(bscore>=10)win('g1');
+  });
+  bub.push(o);
+}
+function loop1(ts){
+  raf1=requestAnimationFrame(loop1);
+  if(!lastT)lastT=ts;
+  const dt=Math.min(50,ts-lastT)/1000;lastT=ts;
+  spawnT-=dt;
+  if(spawnT<=0&&bub.length<5){spawnT=.75+Math.random()*.65;spawnBub();}
+  for(const o of bub){o.y-=o.v*dt;o.el.style.transform='translateY('+o.y+'px)';}
+  bub=bub.filter(o=>{
+    if(!o.el.isConnected)return false;
+    if(o.y<-150){o.el.remove();return false;}
+    return true;
+  });
+}
+function start1(){
+  stop1();
+  bub=[];bscore=0;spawnT=.35;lastT=0;
+  el('#s1').textContent='0';el('#g1wrap').innerHTML='';
+  raf1=requestAnimationFrame(loop1);
+}
+function stop1(){if(raf1)cancelAnimationFrame(raf1);raf1=0;}
+
+/* ========= 关卡2 认识颜色 ========= */
+const COLS=[['红色','#ff4b5c'],['黄色','#ffd93d'],['蓝色','#4d9bff'],['绿色','#3ddc84'],
+            ['橙色','#ff9f43'],['紫色','#b06dff'],['粉色','#ff6fd8'],['棕色','#a4703a']];
+let q2=0;
+function start2(){
+  q2=0;el('#s2').textContent='0';
+  const o=el('#o2');
+  o.style.gridTemplateColumns='1fr 1fr';
+  o.style.gridTemplateRows='1fr 1fr';
+  next2();
+}
+function next2(){
+  if(q2>=8)return;
+  const pick=shuffle(COLS.map((_,i)=>i)).slice(0,4);
+  const ans=pick[0];
+  el('#t2').style.background=COLS[ans][1];
+  el('#t2').textContent=COLS[ans][0];
+  const box=el('#o2');box.innerHTML='';
+  shuffle(pick).forEach(i=>{
+    const d=document.createElement('div');
+    d.className='opt';
+    d.style.background=COLS[i][1];
+    d.style.borderColor='rgba(255,255,255,.55)';
+    d.addEventListener('pointerdown',e=>{
+      e.preventDefault();
+      if(busy())return;
+      if(i===ans){
+        const r=d.getBoundingClientRect();
+        burst(r.left+r.width/2,r.top+r.height/2);
+        sGood();q2++;el('#s2').textContent=q2;
+        if(q2>=8)win('g2');else setTimeout(next2,460);
+      }else{
+        sBad();
+        d.classList.add('shake');
+        setTimeout(()=>d.classList.remove('shake'),420);
+      }
+    });
+    box.appendChild(d);
+  });
+}
+
+/* ========= 关卡3 找一样的小动物 ========= */
+const ANI=['🐱','🐶','🐰','🐼','🦁','🐸'];
+let q3=0;
+function start3(){q3=0;el('#s3').textContent='0';next3();}
+function next3(){
+  if(q3>=8)return;
+  const pool=shuffle(ANI.slice());
+  const ans=pool[0];
+  const n=q3<4?3:4;
+  const list=shuffle([ans].concat(pool.slice(1,n)));
+  el('#t3').textContent=ans;
+  const box=el('#o3');box.innerHTML='';
+  box.style.gridTemplateColumns=list.length===3?'repeat(3,1fr)':'1fr 1fr';
+  box.style.gridTemplateRows=list.length===3?'1fr':'1fr 1fr';
+  list.forEach(a=>{
+    const d=document.createElement('div');
+    d.className='opt';
+    d.textContent=a;
+    d.addEventListener('pointerdown',e=>{
+      e.preventDefault();
+      if(busy())return;
+      if(a===ans){
+        const r=d.getBoundingClientRect();
+        burst(r.left+r.width/2,r.top+r.height/2);
+        sGood();q3++;el('#s3').textContent=q3;
+        if(q3>=8)win('g3');else setTimeout(next3,460);
+      }else{
+        sBad();
+        d.classList.add('shake');
+        setTimeout(()=>d.classList.remove('shake'),420);
+      }
+    });
+    box.appendChild(d);
+  });
+}
+
+/* ========= 关卡4 数一数 ========= */
+const FRUITS=['🍎','🍌','🍓','🍇','🍊'];
+let q4=0,cur4=1,ok4=false,gen4=0;
+function start4(){
+  gen4++;q4=0;cur4=1;ok4=false;
+  el('#s4').textContent='0';
+  el('#num4').innerHTML='';
+  next4();
+}
+function drawFruits(){
+  const stage=el('#stage4');
+  const W=stage.clientWidth,H=stage.clientHeight;
+  stage.innerHTML='';
+  if(!W||!H)return;
+  const N=cur4;
+  const cols=N<=3?N:(N<=4?2:(N<=6?3:4));
+  const rows=Math.ceil(N/cols);
+  const cw=W/cols,ch=H/rows;
+  const size=Math.min(Math.min(cw,ch)*0.72,148);
+  const fruit=FRUITS[rnd(FRUITS.length)];
+  const cells=shuffle(Array.from({length:cols*rows},(_,i)=>i)).slice(0,N);
+  cells.forEach(idx=>{
+    const c=idx%cols,r=Math.floor(idx/cols);
+    const x=(c+0.5)*cw+(Math.random()-.5)*cw*0.2;
+    const y=(r+0.5)*ch+(Math.random()-.5)*ch*0.2;
+    const s=document.createElement('span');
+    s.className='fruit';
+    s.textContent=fruit;
+    s.style.left=x.toFixed(1)+'px';
+    s.style.top=y.toFixed(1)+'px';
+    s.style.fontSize=size.toFixed(1)+'px';
+    s.style.transform='translate(-50%,-50%) rotate('+(rnd(25)-12)+'deg)';
+    stage.appendChild(s);
+  });
+}
+function next4(){
+  if(q4>=8)return;
+  ok4=false;cur4=q4+1;
+  drawFruits();
+  const all=shuffle([1,2,3,4,5,6,7,8].filter(v=>v!==cur4));
+  const near=all.filter(v=>Math.abs(v-cur4)<=2).slice(0,2);
+  for(const v of all){if(near.length>=2)break;if(!near.includes(v))near.push(v);}
+  const picks=shuffle([cur4].concat(near));
+  const box=el('#num4');box.innerHTML='';
+  const g=gen4;
+  picks.forEach(v=>{
+    const b=document.createElement('div');
+    b.className='num';b.textContent=v;
+    b.addEventListener('pointerdown',e=>{
+      e.preventDefault();
+      if(busy()||ok4)return;
+      if(v===cur4){
+        ok4=true;
+        const r=b.getBoundingClientRect();
+        burst(r.left+r.width/2,r.top+r.height/2);
+        sGood();
+        q4++;el('#s4').textContent=q4;
+        if(q4>=8)win('g4');else setTimeout(()=>{if(g===gen4)next4();},480);
+      }else{
+        sBad();
+        b.classList.add('shake');
+        setTimeout(()=>b.classList.remove('shake'),420);
+        box.querySelectorAll('.num').forEach(n=>{
+          if(+n.textContent===cur4)n.classList.add('hit');
+        });
+      }
+    });
+    box.appendChild(b);
+  });
+}
+
+/* ========= 关卡5 形状配对 ========= */
+const SHAPES=[
+  {k:'circle',c:'#ff6b6b',e:'⭕',cs:'border-radius:50%'},
+  {k:'square',c:'#4d9bff',e:'⬜',cs:'border-radius:14px'},
+  {k:'tri',c:'#3ddc84',e:'🔺',cs:'clip-path:polygon(50% 3%,97% 97%,3% 97%)'},
+  {k:'star',c:'#ffd93d',e:'⭐',cs:'clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 93%,50% 71%,21% 93%,32% 57%,2% 35%,39% 35%)'}
+];
+let q5=0,pcs5=[];
+function start5(){
+  q5=0;el('#s5').textContent='0';pcs5=[];
+  const box=el('#slot5');box.innerHTML='';
+  SHAPES.forEach(s=>{
+    const d=document.createElement('div');
+    d.className='slot';d.dataset.k=s.k;d.textContent=s.e;
+    box.appendChild(d);
+  });
+  const tray=el('#tray5'),tr=tray.getBoundingClientRect();
+  if(!tr.width||!tr.height)return;
+  const list=shuffle(SHAPES.slice());
+  const step=tr.width/list.length;
+  const size=Math.max(90,Math.min(step*0.82,tr.height*0.82,132));
+  const top=tr.top+Math.max(0,(tr.height-size)/2);
+  list.forEach((s,i)=>{
+    const d=document.createElement('div');
+    d.className='pc';d.dataset.k=s.k;
+    d.style.width=size+'px';d.style.height=size+'px';
+    d.innerHTML='<i style="background:'+s.c+';'+s.cs+'"></i>';
+    d.style.left=(tr.left+step*i+(step-size)/2)+'px';
+    d.style.top=top+'px';
+    d.__cx=parseFloat(d.style.left)+size/2;
+    d.__cy=top+size/2;
+    d.__size=size;
+    bindDrag(d);
+    document.body.appendChild(d);
+    pcs5.push(d);
+  });
+}
+function stop5(){
+  pcs5.forEach(d=>d.remove());
+  pcs5=[];
+}
+function bindDrag(d){
+  let id=null,sx=0,sy=0;
+  d.addEventListener('pointerdown',e=>{
+    e.preventDefault();
+    if(id!==null||d.classList.contains('done'))return;
+    id=e.pointerId;sx=e.clientX;sy=e.clientY;
+    d.style.transition='none';
+    d.style.transform='scale(1.12)';
+    d.style.zIndex=99;
+    try{d.setPointerCapture(id);}catch(_){}
+  });
+  d.addEventListener('pointermove',e=>{
+    if(e.pointerId!==id)return;
+    e.preventDefault();
+    d.style.transform='translate('+(e.clientX-sx)+'px,'+(e.clientY-sy)+'px) scale(1.12)';
+  });
+  const end=e=>{
+    if(e.pointerId!==id)return;
+    id=null;
+    try{d.releasePointerCapture(e.pointerId);}catch(_){}
+    drop5(d);
+  };
+  d.addEventListener('pointerup',end);
+  d.addEventListener('pointercancel',end);
+}
+function drop5(d){
+  const r=d.getBoundingClientRect();
+  const cx=r.left+r.width/2,cy=r.top+r.height/2;
+  const slot=Array.prototype.find.call(el('#slot5').children,
+    s=>s.dataset.k===d.dataset.k&&!s.classList.contains('done'));
+  if(slot){
+    const sr=slot.getBoundingClientRect();
+    if(cx>sr.left-8&&cx<sr.right+8&&cy>sr.top-8&&cy<sr.bottom+8){
+      slot.classList.add('done');
+      d.classList.add('done');
+      d.style.transition='transform .22s ease-out';
+      d.style.transform='translate('+(sr.left+sr.width/2-d.__cx)+'px,'+(sr.top+sr.height/2-d.__cy)+'px)';
+      d.style.pointerEvents='none';
+      burst(sr.left+sr.width/2,sr.top+sr.height/2);
+      sGood();
+      q5++;el('#s5').textContent=q5;
+      if(q5>=4)win('g5');
+      return;
+    }
+  }
+  d.style.transition='transform .26s cubic-bezier(.34,1.4,.6,1)';
+  d.style.transform='';
+  d.style.zIndex=40;
+  sBad();
+}
+
+/* ========= 关卡6 记忆翻翻乐 ========= */
+const MEMO=['🐱','🐶','🐰','🐼','🦁','🐸'];
+let q6=0,steps6=0,open6=[],lock6=false,t6=0;
+function start6(){
+  clearTimeout(t6);
+  q6=0;steps6=0;open6=[];lock6=false;
+  el('#s6').textContent='0';
+  el('#s6step').textContent='0';
+  const b=el('#board6');
+  b.innerHTML='';
+  shuffle(MEMO.concat(MEMO)).forEach(e=>{
+    const d=document.createElement('div');
+    d.className='mc';
+    d.dataset.e=e;
+    d.innerHTML='<div class="in"><div class="b">🌟</div><div class="f">'+e+'</div></div>';
+    d.addEventListener('pointerdown',ev=>{ev.preventDefault();flip6(d);});
+    b.appendChild(d);
+  });
+}
+function stop6(){clearTimeout(t6);t6=0;lock6=false;open6=[];}
+function flip6(d){
+  if(lock6||d.classList.contains('flip'))return;
+  d.classList.add('flip');
+  sFlip();
+  open6.push(d);
+  if(open6.length<2)return;
+  lock6=true;steps6++;el('#s6step').textContent=steps6;
+  const a=open6[0],b=open6[1];
+  if(a.dataset.e===b.dataset.e){
+    t6=setTimeout(()=>{
+      a.classList.add('done');b.classList.add('done');
+      const r=b.getBoundingClientRect();
+      burst(r.left+r.width/2,r.top+r.height/2);
+      sGood();
+      q6++;el('#s6').textContent=q6;
+      open6=[];lock6=false;
+      if(q6>=6)win('g6');
+    },420);
+  }else{
+    sBad();
+    t6=setTimeout(()=>{
+      a.classList.remove('flip');b.classList.remove('flip');
+      open6=[];lock6=false;
+    },1000);
+  }
+}
+
+/* ========= 事件 ========= */
+el('#back').addEventListener('pointerdown',e=>{e.preventDefault();if(busy())return;open('home');});
+el('#mute').addEventListener('pointerdown',e=>{
+  e.preventDefault();if(busy())return;
+  mute=!mute;el('#mute').textContent=mute?'🔇':'🔊';
+});
+document.querySelectorAll('[data-go]').forEach(c=>{
+  c.addEventListener('pointerdown',e=>{e.preventDefault();if(busy())return;open(c.dataset.go);});
+});
+el('#again').addEventListener('pointerdown',e=>{
+  e.preventDefault();if(busy())return;
+  el('#win').classList.add('hidden');
+  const id=current;open('home');open(id);
+});
+el('#tohome').addEventListener('pointerdown',e=>{
+  e.preventDefault();if(busy())return;
+  el('#win').classList.add('hidden');open('home');
+});
+window.addEventListener('pointerdown',()=>actx(),{once:true});
+document.addEventListener('dblclick',e=>e.preventDefault());
+document.addEventListener('gesturestart',e=>e.preventDefault());
+window.addEventListener('resize',()=>{lastT=0;if(current==='g4')drawFruits();});
+document.addEventListener('visibilitychange',()=>{lastT=0;});
+
+renderHome();
+open('home');
+})();
+</script>
+</body>
+</html>
